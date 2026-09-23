@@ -1,0 +1,1760 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full bg-slate-950 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graffiti Art Studio & Generator</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts for Graffiti Styles -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bungee+Shade&family=Fugaz+One&family=Mochiy+Pop+One&family=Permanent+Marker&family=Rubik+Spray+Paint&family=Sedgwick+Ave+Display&family=Shojumaru&family=Black+Ops+One&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+        
+        .checkerboard {
+            background-color: #1e293b;
+            background-image: linear-gradient(45deg, #0f172a 25%, transparent 25%),
+                              linear-gradient(-45deg, #0f172a 25%, transparent 25%),
+                              linear-gradient(45deg, transparent 75%, #0f172a 75%),
+                              linear-gradient(-45deg, transparent 75%, #0f172a 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col overflow-hidden select-none">
+
+    <!-- Header Navigation -->
+    <header class="h-16 border-b border-slate-800 bg-slate-900/80 backdrop-blur-md px-4 md:px-6 flex items-center justify-between z-20 shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 via-rose-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-rose-500/20">
+                <i class="fa-solid me-0 fa-spray-can text-white text-xl"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg leading-tight bg-gradient-to-r from-amber-200 via-rose-300 to-indigo-300 bg-clip-text text-transparent">
+                    Graffiti Studio
+                </h1>
+                <p class="text-xs text-slate-400">Pembuat Grafiti Interaktif & Elegan</p>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center gap-2">
+            <button id="btnReset" class="px-3 py-2 text-xs font-semibold rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all flex items-center gap-2">
+                <i class="fa-solid fa-rotate-left"></i>
+                <span class="hidden sm:inline">Reset</span>
+            </button>
+            <button id="btnRandomize" class="px-3 py-2 text-xs font-semibold rounded-lg border border-indigo-500/30 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 transition-all flex items-center gap-2">
+                <i class="fa-solid fa-dice"></i>
+                <span class="hidden sm:inline">Acak Gaya</span>
+            </button>
+            <button id="btnDownload" class="px-4 py-2 text-xs font-bold rounded-lg bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-600 hover:opacity-90 text-white shadow-lg shadow-rose-500/25 transition-all flex items-center gap-2">
+                <i class="fa-solid fa-download"></i>
+                <span>Unduh PNG</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <div class="flex-1 flex flex-col md:flex-row overflow-hidden relative">
+
+        <!-- Left Control Sidebar -->
+        <aside class="w-full md:w-96 border-r border-slate-800 bg-slate-900 flex flex-col h-1/2 md:h-full z-10 shrink-0">
+            <!-- Tabs Menu -->
+            <div class="flex border-b border-slate-800 bg-slate-950/50 p-1 gap-1 shrink-0 text-xs font-semibold">
+                <button data-tab="tab-text" class="tab-btn flex-1 py-2.5 rounded-lg text-slate-400 hover:text-slate-200 transition-all flex items-center justify-center gap-2 active">
+                    <i class="fa-solid fa-font"></i> Teks
+                </button>
+                <button data-tab="tab-shape" class="tab-btn flex-1 py-2.5 rounded-lg text-slate-400 hover:text-slate-200 transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-shapes"></i> Bentuk
+                </button>
+                <button data-tab="tab-color" class="tab-btn flex-1 py-2.5 rounded-lg text-slate-400 hover:text-slate-200 transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-palette"></i> Warna
+                </button>
+                <button data-tab="tab-effects" class="tab-btn flex-1 py-2.5 rounded-lg text-slate-400 hover:text-slate-200 transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Efek
+                </button>
+            </div>
+
+            <!-- Scrollable Tab Contents -->
+            <div class="flex-1 overflow-y-auto p-4 space-y-6">
+
+                <!-- TAB 1: TEKS & FONT -->
+                <div id="tab-text" class="tab-content space-y-5">
+                    
+                    <!-- Multi-Text Layer Management -->
+                    <div class="border-b border-slate-800 pb-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <label class="text-xs font-bold uppercase tracking-wider text-rose-400 flex items-center gap-2">
+                                <i class="fa-solid fa-layer-group"></i> Daftar Tulisan (Layer)
+                            </label>
+                            <button id="btnAddLayer" class="px-2.5 py-1 text-xs font-bold bg-rose-500 hover:bg-rose-600 text-white rounded-lg transition-all flex items-center gap-1 shadow-md shadow-rose-500/20">
+                                <i class="fa-solid fa-plus"></i>
+                                <span>Tambah Teks</span>
+                            </button>
+                        </div>
+                        <div id="layerListContainer" class="space-y-2 max-h-36 overflow-y-auto pr-1">
+                            <!-- Injected dynamically by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Text Input -->
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Teks Grafiti Selected</label>
+                        <input type="text" id="inputText" value="STREET ART" placeholder="Ketik tulisan..." 
+                            class="w-full bg-slate-950 border border-slate-700 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 rounded-xl px-4 py-3 text-lg font-bold text-slate-100 outline-none transition-all">
+                    </div>
+
+                    <!-- Position X & Y Sliders -->
+                    <div class="grid grid-cols-2 gap-3 p-3 bg-slate-950/60 rounded-xl border border-slate-800">
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-xs font-semibold text-slate-300">Posisi X</label>
+                                <span id="valPosX" class="text-xs text-rose-400 font-mono">0px</span>
+                            </div>
+                            <input type="range" id="sliderPosX" min="-400" max="400" value="0" class="w-full accent-rose-500 bg-slate-800 rounded-lg h-2 cursor-pointer">
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-xs font-semibold text-slate-300">Posisi Y</label>
+                                <span id="valPosY" class="text-xs text-rose-400 font-mono">0px</span>
+                            </div>
+                            <input type="range" id="sliderPosY" min="-250" max="250" value="0" class="w-full accent-rose-500 bg-slate-800 rounded-lg h-2 cursor-pointer">
+                        </div>
+                    </div>
+
+                    <!-- Font Style Selection -->
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Gaya Font Urban</label>
+                        <div class="grid grid-cols-1 gap-2">
+                            <button data-font="'Rubik Spray Paint', cursive" class="font-opt px-4 py-3 rounded-xl border border-slate-700 hover:border-slate-500 bg-slate-950 text-left transition-all flex items-center justify-between active">
+                                <span style="font-family: 'Rubik Spray Paint', cursive;" class="text-lg">Spray Paint</span>
+                                <i class="fa-solid fa-check text-rose-500 opacity-100 check-icon"></i>
+                            </button>
+                            <button data-font="'Sedgwick Ave Display', cursive" class="font-opt px-4 py-3 rounded-xl border border-slate-700 hover:border-slate-500 bg-slate-950 text-left transition-all flex items-center justify-between">
+                                <span style="font-family: 'Sedgwick Ave Display', cursive;" class="text-lg">Sedgwick Wild</span>
+                                <i class="fa-solid fa-check text-rose-500 opacity-0 check-icon"></i>
+                            </button>
+                            <button data-font="'Permanent Marker', cursive" class="font-opt px-4 py-3 rounded-xl border border-slate-700 hover:border-slate-500 bg-slate-950 text-left transition-all flex items-center justify-between">
+                                <span style="font-family: 'Permanent Marker', cursive;" class="text-lg">Marker Bold</span>
+                                <i class="fa-solid fa-check text-rose-500 opacity-0 check-icon"></i>
+                            </button>
+                            <button data-font="'Mochiy Pop One', sans-serif" class="font-opt px-4 py-3 rounded-xl border border-slate-700 hover:border-slate-500 bg-slate-950 text-left transition-all flex items-center justify-between">
+                                <span style="font-family: 'Mochiy Pop One', sans-serif;" class="text-lg">Bubble Pop</span>
+                                <i class="fa-solid fa-check text-rose-500 opacity-0 check-icon"></i>
+                            </button>
+                            <button data-font="'Fugaz One', cursive" class="font-opt px-4 py-3 rounded-xl border border-slate-700 hover:border-slate-500 bg-slate-950 text-left transition-all flex items-center justify-between">
+                                <span style="font-family: 'Fugaz One', cursive;" class="text-lg">Fugaz Dynamic</span>
+                                <i class="fa-solid fa-check text-rose-500 opacity-0 check-icon"></i>
+                            </button>
+                            <button data-font="'Black Ops One', cursive" class="font-opt px-4 py-3 rounded-xl border border-slate-700 hover:border-slate-500 bg-slate-950 text-left transition-all flex items-center justify-between">
+                                <span style="font-family: 'Black Ops One', cursive;" class="text-lg">Block Ops</span>
+                                <i class="fa-solid fa-check text-rose-500 opacity-0 check-icon"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Size Slider -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-xs font-semibold text-slate-300">Ukuran Teks</label>
+                            <span id="valFontSize" class="text-xs text-rose-400 font-mono">110px</span>
+                        </div>
+                        <input type="range" id="sliderFontSize" min="40" max="200" value="110" class="w-full accent-rose-500 bg-slate-800 rounded-lg h-2 cursor-pointer">
+                    </div>
+                </div>
+
+                <!-- TAB 2: BENTUK & DISTORSI -->
+                <div id="tab-shape" class="tab-content space-y-5 hidden">
+                    <p class="text-xs text-slate-400 leading-relaxed">Ubah bentuk geometri grafiti untuk menciptakan gaya melengkung, miring, atau berdimensi 3D.</p>
+                    
+                    <!-- Arc / Curve -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-xs font-semibold text-slate-300">Lengkungan (Arc)</label>
+                            <span id="valArc" class="text-xs text-rose-400 font-mono">0°</span>
+                        </div>
+                        <input type="range" id="sliderArc" min="-60" max="60" value="0" class="w-full accent-rose-500 bg-slate-800 rounded-lg h-2 cursor-pointer">
+                    </div>
+
+                    <!-- Skew / Slant -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-xs font-semibold text-slate-300">Kemiringan (Skew)</label>
+                            <span id="valSkew" class="text-xs text-rose-400 font-mono">-10°</span>
+                        </div>
+                        <input type="range" id="sliderSkew" min="-45" max="45" value="-10" class="w-full accent-rose-500 bg-slate-800 rounded-lg h-2 cursor-pointer">
+                    </div>
+
+                    <!-- Rotation -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-xs font-semibold text-slate-300">Rotasi Total</label>
+                            <span id="valRotate" class="text-xs text-rose-400 font-mono">-3°</span>
+                        </div>
+                        <input type="range" id="sliderRotate" min="-30" max="30" value="-3" class="w-full accent-rose-500 bg-slate-800 rounded-lg h-2 cursor-pointer">
+                    </div>
+
+                    <!-- 3D Extrusion Depth -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-xs font-semibold text-slate-300">Kedalaman 3D Extrusion</label>
+                            <span id="valDepth" class="text-xs text-rose-400 font-mono">25px</span>
+                        </div>
+                        <input type="range" id="sliderDepth" min="0" max="60" value="25" class="w-full accent-rose-500 bg-slate-800 rounded-lg h-2 cursor-pointer">
+                    </div>
+
+                    <!-- 3D Extrusion Direction Angle -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-xs font-semibold text-slate-300">Arah Bayangan 3D</label>
+                            <span id="valAngle" class="text-xs text-rose-400 font-mono">135°</span>
+                        </div>
+                        <input type="range" id="sliderAngle" min="0" max="360" value="135" class="w-full accent-rose-500 bg-slate-800 rounded-lg h-2 cursor-pointer">
+                    </div>
+
+                    <!-- Letter Spacing -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-xs font-semibold text-slate-300">Jarak Antar Huruf</label>
+                            <span id="valSpacing" class="text-xs text-rose-400 font-mono">2px</span>
+                        </div>
+                        <input type="range" id="sliderSpacing" min="-15" max="40" value="2" class="w-full accent-rose-500 bg-slate-800 rounded-lg h-2 cursor-pointer">
+                    </div>
+                </div>
+
+                <!-- TAB 3: WARNA ELEGAN -->
+                <div id="tab-color" class="tab-content space-y-5 hidden">
+                    <!-- Color Presets -->
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Tema Warna Elegan</label>
+                        <div class="grid grid-cols-2 gap-2" id="presetContainer">
+                            <!-- Injected dynamically by JS -->
+                        </div>
+                    </div>
+
+                    <div class="border-t border-slate-800 pt-4 space-y-3">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400">Pengaturan Warna Kustom</label>
+
+                        <!-- Fill Start Color -->
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-slate-300">Gradien Teks (Atas)</span>
+                            <input type="color" id="colFillStart" value="#f59e0b" class="w-8 h-8 rounded-lg bg-transparent cursor-pointer border-0">
+                        </div>
+
+                        <!-- Fill End Color -->
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-slate-300">Gradien Teks (Bawah)</span>
+                            <input type="color" id="colFillEnd" value="#e11d48" class="w-8 h-8 rounded-lg bg-transparent cursor-pointer border-0">
+                        </div>
+
+                        <!-- Outline Color -->
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-slate-300">Garis Luar (Stroke)</span>
+                            <input type="color" id="colOutline" value="#0f172a" class="w-8 h-8 rounded-lg bg-transparent cursor-pointer border-0">
+                        </div>
+
+                        <!-- 3D Extrusion Color -->
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-slate-300">Sisi 3D (Extrusion)</span>
+                            <input type="color" id="colExtrusion" value="#4c0519" class="w-8 h-8 rounded-lg bg-transparent cursor-pointer border-0">
+                        </div>
+
+                        <!-- Glow / Shadow Color -->
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-slate-300">Pendaran (Outer Glow)</span>
+                            <input type="color" id="colGlow" value="#fb7185" class="w-8 h-8 rounded-lg bg-transparent cursor-pointer border-0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 4: EFEK & SEMPROTAN -->
+                <div id="tab-effects" class="tab-content space-y-5 hidden">
+                    <!-- Outline Width -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-xs font-semibold text-slate-300">Ketebalan Stroke Outline</label>
+                            <span id="valOutlineWidth" class="text-xs text-rose-400 font-mono">12px</span>
+                        </div>
+                        <input type="range" id="sliderOutlineWidth" min="0" max="30" value="12" class="w-full accent-rose-500 bg-slate-800 rounded-lg h-2 cursor-pointer">
+                    </div>
+
+                    <!-- Paint Drips Intensity -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-xs font-semibold text-slate-300">Efek Lelehan Cat (Drips)</label>
+                            <span id="valDrips" class="text-xs text-rose-400 font-mono">12</span>
+                        </div>
+                        <input type="range" id="sliderDrips" min="0" max="35" value="12" class="w-full accent-rose-500 bg-slate-800 rounded-lg h-2 cursor-pointer">
+                    </div>
+
+                    <!-- Spray Particles Intensity -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-xs font-semibold text-slate-300">Partikel Semprotan (Spray Mist)</label>
+                            <span id="valSpray" class="text-xs text-rose-400 font-mono">50</span>
+                        </div>
+                        <input type="range" id="sliderSpray" min="0" max="100" value="50" class="w-full accent-rose-500 bg-slate-800 rounded-lg h-2 cursor-pointer">
+                    </div>
+
+                    <!-- Outer Glow Strength -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-xs font-semibold text-slate-300">Intensitas Pendaran Neon/Glow</label>
+                            <span id="valGlow" class="text-xs text-rose-400 font-mono">25px</span>
+                        </div>
+                        <input type="range" id="sliderGlow" min="0" max="60" value="25" class="w-full accent-rose-500 bg-slate-800 rounded-lg h-2 cursor-pointer">
+                    </div>
+
+                    <!-- Background Selection -->
+                    <div class="border-t border-slate-800 pt-4">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Latar Belakang Studio</label>
+                        <div class="grid grid-cols-2 gap-2" id="bgSelector">
+                            <button data-bg="dark-studio" class="bg-opt px-3 py-2 rounded-lg border border-rose-500 bg-slate-950 text-xs text-slate-200 font-medium text-left flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full bg-slate-900 border border-slate-700"></span>
+                                Dark Studio
+                            </button>
+                            <button data-bg="brick-wall" class="bg-opt px-3 py-2 rounded-lg border border-slate-700 bg-slate-950 text-xs text-slate-200 font-medium text-left flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full bg-amber-900"></span>
+                                Brick Wall
+                            </button>
+                            <button data-bg="concrete" class="bg-opt px-3 py-2 rounded-lg border border-slate-700 bg-slate-950 text-xs text-slate-200 font-medium text-left flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full bg-slate-600"></span>
+                                Urban Concrete
+                            </button>
+                            <button data-bg="transparent" class="bg-opt px-3 py-2 rounded-lg border border-slate-700 bg-slate-950 text-xs text-slate-200 font-medium text-left flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full bg-slate-800 border border-dashed border-slate-500"></span>
+                                Transparan
+                            </button>
+                        </div>
+
+                        <!-- Custom Photo Background Upload -->
+                        <div class="mt-3">
+                            <input type="file" id="bgImageInput" accept="image/*" class="hidden">
+                            <button id="btnUploadBg" class="w-full px-3 py-2 rounded-lg border border-dashed border-slate-700 hover:border-rose-500 bg-slate-950/80 hover:bg-slate-900 text-xs text-slate-300 font-medium flex items-center justify-center gap-2 transition-all">
+                                <i class="fa-solid fa-cloud-arrow-up text-rose-400"></i>
+                                <span id="bgUploadLabel" class="truncate">Unggah Foto Latar Sendiri</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </aside>
+
+        <!-- Right Main Canvas Preview Area -->
+        <main class="flex-1 bg-slate-950 flex flex-col items-center justify-center relative p-4 overflow-hidden checkerboard">
+            
+            <!-- Floating Canvas Toolbar Info -->
+            <div class="absolute top-4 left-4 z-10 bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-slate-800 text-xs text-slate-400 flex items-center gap-2">
+                <i class="fa-solid fa-arrows-up-down-left-right text-rose-400"></i>
+                <span>Klik & Geser Teks di Kanvas untuk Memindahkan Posisi</span>
+            </div>
+
+            <!-- Canvas Container -->
+            <div id="canvasContainer" class="w-full h-full flex items-center justify-center relative cursor-grab active:cursor-grabbing">
+                <canvas id="graffitiCanvas" class="max-w-full max-h-full rounded-2xl shadow-2xl transition-all duration-300"></canvas>
+            </div>
+
+            <!-- Bottom Quick Tip -->
+            <div class="absolute bottom-4 text-center z-10 text-xs text-slate-500 pointer-events-none hidden md:block">
+                Gunakan tombol + Tambah Teks di kiri untuk membuat beberapa tulisan terpisah pada satu karya grafiti.
+            </div>
+        </main>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-emerald-500 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 transition-all transform translate-y-20 opacity-0 z-50">
+        <i class="fa-solid fa-circle-check text-lg"></i>
+        <span id="toastMsg" class="text-xs font-bold">Gambar berhasil diunduh!</span>
+    </div>
+
+    <!-- Image Crop Modal Overlay -->
+    <div id="cropModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none transition-all duration-300">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl shadow-2xl flex flex-col overflow-hidden">
+            <!-- Modal Header -->
+            <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400">
+                        <i class="fa-solid fa-crop-simple text-sm"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-sm text-slate-100">Potong Foto Latar Belakang</h3>
+                        <p class="text-[11px] text-slate-400">Atur area foto yang ingin dijadikan latar canvas</p>
+                    </div>
+                </div>
+                <button id="btnCloseCrop" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-100 transition-all flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Modal Content & Crop Area -->
+            <div class="p-4 flex flex-col items-center justify-center bg-slate-950/60 relative select-none">
+                <div id="cropCanvasContainer" class="relative max-w-full max-h-[380px] overflow-hidden rounded-xl border border-slate-800 checkerboard flex items-center justify-center">
+                    <canvas id="cropCanvas" class="cursor-crosshair max-w-full max-h-[380px] block"></canvas>
+                </div>
+            </div>
+
+            <!-- Modal Controls Toolbar -->
+            <div class="px-5 py-3 border-t border-slate-800 bg-slate-950/40 flex flex-wrap items-center justify-between gap-3 text-xs">
+                <!-- Aspect Ratio Selector -->
+                <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="text-slate-400 text-[11px] font-semibold mr-1">Rasio:</span>
+                    <button data-ratio="12/7" class="btn-crop-ratio px-2.5 py-1 rounded-md border border-rose-500 bg-rose-500/10 text-rose-300 font-medium">12:7 (Kanvas)</button>
+                    <button data-ratio="free" class="btn-crop-ratio px-2.5 py-1 rounded-md border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700">Bebas</button>
+                    <button data-ratio="1" class="btn-crop-ratio px-2.5 py-1 rounded-md border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700">1:1</button>
+                    <button data-ratio="16/9" class="btn-crop-ratio px-2.5 py-1 rounded-md border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700">16:9</button>
+                </div>
+
+                <!-- Rotate & Reset Actions -->
+                <div class="flex items-center gap-2">
+                    <button id="btnRotateCrop" class="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center gap-1.5 transition-all">
+                        <i class="fa-solid fa-rotate-right text-rose-400"></i>
+                        <span>Putar 90°</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modal Footer Actions -->
+            <div class="px-5 py-3.5 border-t border-slate-800 bg-slate-900 flex items-center justify-between">
+                <span class="text-[11px] text-slate-500 hidden sm:inline"><i class="fa-solid fa-arrows-up-down-left-right text-slate-400 mr-1"></i> Geser & Tarik sudut kotak untuk memotong</span>
+                <div class="flex items-center gap-2 ml-auto">
+                    <button id="btnCancelCrop" class="px-4 py-2 rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs transition-all">
+                        Batal
+                    </button>
+                    <button id="btnApplyCrop" class="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-600 hover:opacity-90 text-white font-bold text-xs shadow-lg shadow-rose-500/20 transition-all flex items-center gap-1.5">
+                        <i class="fa-solid fa-check"></i>
+                        <span>Terapkan Pemotongan</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // Canvas & Context Setup
+            const canvas = document.getElementById('graffitiCanvas');
+            const ctx = canvas.getContext('2d');
+            const container = document.getElementById('canvasContainer');
+
+            // State Object with Multi-Layer support
+            const state = {
+                layers: [],
+                activeLayerId: null,
+                bgMode: "dark-studio",
+                customBgImage: null,
+                
+                // Canvas Interaction state
+                isDragging: false,
+                dragStartX: 0,
+                dragStartY: 0,
+                initialLayerX: 0,
+                initialLayerY: 0
+            };
+
+            // Preset Palettes (Warna Elegan)
+            const COLOR_PRESETS = [
+                { name: "Luxury Gold", fillStart: "#FCE96A", fillEnd: "#C59B27", outline: "#120F09", extrusion: "#4A370A", glow: "#EAB308" },
+                { name: "Cyber Neon", fillStart: "#38BDF8", fillEnd: "#818CF8", outline: "#020617", extrusion: "#1E1B4B", glow: "#38BDF8" },
+                { name: "Rose Platinum", fillStart: "#FDA4AF", fillEnd: "#E11D48", outline: "#18181B", extrusion: "#4C0519", glow: "#FB7185" },
+                { name: "Emerald Luxe", fillStart: "#34D399", fillEnd: "#059669", outline: "#022C22", extrusion: "#064E3B", glow: "#10B981" },
+                { name: "Royal Violet", fillStart: "#C084FC", fillEnd: "#7C3AED", outline: "#0F172A", extrusion: "#3B0764", glow: "#A855F7" },
+                { name: "Sunset Blaze", fillStart: "#FDE047", fillEnd: "#EA580C", outline: "#180202", extrusion: "#7C2D12", glow: "#F97316" }
+            ];
+
+            // Render Color Presets Grid
+            const presetContainer = document.getElementById('presetContainer');
+            COLOR_PRESETS.forEach((preset) => {
+                const btn = document.createElement('button');
+                btn.className = 'px-3 py-2 rounded-xl border border-slate-800 bg-slate-950 hover:border-slate-600 transition-all text-left flex flex-col gap-1.5';
+                btn.innerHTML = `
+                    <span class="text-xs font-semibold text-slate-300">${preset.name}</span>
+                    <div class="flex h-3 w-full rounded-md overflow-hidden border border-slate-800">
+                        <div class="flex-1" style="background: ${preset.fillStart}"></div>
+                        <div class="flex-1" style="background: ${preset.fillEnd}"></div>
+                        <div class="flex-1" style="background: ${preset.extrusion}"></div>
+                        <div class="flex-1" style="background: ${preset.glow}"></div>
+                    </div>
+                `;
+                btn.addEventListener('click', () => applyColorPreset(preset));
+                presetContainer.appendChild(btn);
+            });
+
+            // Helper to get active layer
+            function getActiveLayer() {
+                return state.layers.find(l => l.id === state.activeLayerId) || state.layers[0];
+            }
+
+            function generateSeedsForLayer(layer) {
+                layer.dripSeeds = [];
+                for (let i = 0; i < 50; i++) {
+                    layer.dripSeeds.push({
+                        xRel: Math.random(),
+                        length: 20 + Math.random() * 80,
+                        width: 3 + Math.random() * 6
+                    });
+                }
+
+                layer.spraySeeds = [];
+                for (let i = 0; i < 400; i++) {
+                    layer.spraySeeds.push({
+                        xRel: (Math.random() - 0.5) * 1.2,
+                        yRel: (Math.random() - 0.5) * 1.2,
+                        radius: 0.5 + Math.random() * 2,
+                        alpha: 0.1 + Math.random() * 0.5
+                    });
+                }
+            }
+
+            function createNewLayer(text = "STREET ART", yPos = 0, preset = COLOR_PRESETS[0]) {
+                const newId = Date.now() + Math.floor(Math.random() * 1000);
+                const layer = {
+                    id: newId,
+                    text: text,
+                    fontFamily: "'Rubik Spray Paint', cursive",
+                    fontSize: 100,
+                    xOffset: 0,
+                    yOffset: yPos,
+                    arc: 0,
+                    skew: -10,
+                    rotate: -3,
+                    depth: 25,
+                    angle: 135,
+                    spacing: 2,
+                    outlineWidth: 12,
+                    dripsCount: 10,
+                    sprayDensity: 40,
+                    glowBlur: 20,
+                    fillStart: preset.fillStart,
+                    fillEnd: preset.fillEnd,
+                    outlineColor: preset.outline,
+                    extrusionColor: preset.extrusion,
+                    glowColor: preset.glow,
+                    dripSeeds: [],
+                    spraySeeds: []
+                };
+
+                generateSeedsForLayer(layer);
+                state.layers.push(layer);
+                state.activeLayerId = newId;
+
+                renderLayerList();
+                syncUIWithActiveLayer();
+                renderCanvas();
+            }
+
+            function moveLayerUp(id, e) {
+                if (e) e.stopPropagation();
+                const index = state.layers.findIndex(l => l.id === id);
+                if (index < state.layers.length - 1) {
+                    const temp = state.layers[index];
+                    state.layers[index] = state.layers[index + 1];
+                    state.layers[index + 1] = temp;
+                    renderLayerList();
+                    renderCanvas();
+                }
+            }
+
+            function moveLayerDown(id, e) {
+                if (e) e.stopPropagation();
+                const index = state.layers.findIndex(l => l.id === id);
+                if (index > 0) {
+                    const temp = state.layers[index];
+                    state.layers[index] = state.layers[index - 1];
+                    state.layers[index - 1] = temp;
+                    renderLayerList();
+                    renderCanvas();
+                }
+            }
+
+            function deleteLayer(id, e) {
+                if (e) e.stopPropagation();
+                if (state.layers.length <= 1) {
+                    showToast("Minimal harus ada 1 tulisan!");
+                    return;
+                }
+                state.layers = state.layers.filter(l => l.id !== id);
+                if (state.activeLayerId === id) {
+                    state.activeLayerId = state.layers[state.layers.length - 1].id;
+                }
+                renderLayerList();
+                syncUIWithActiveLayer();
+                renderCanvas();
+            }
+
+            function renderLayerList() {
+                const container = document.getElementById('layerListContainer');
+                container.innerHTML = '';
+
+                state.layers.forEach((layer, idx) => {
+                    const isActive = layer.id === state.activeLayerId;
+                    const item = document.createElement('div');
+                    item.className = `flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold cursor-pointer border transition-all ${
+                        isActive ? 'bg-rose-500/10 border-rose-500 text-rose-300' : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                    }`;
+
+                    item.innerHTML = `
+                        <div class="flex items-center gap-2 truncate">
+                            <span class="w-5 h-5 rounded-md bg-slate-800 text-slate-400 flex items-center justify-center text-[10px] shrink-0 font-mono">${idx + 1}</span>
+                            <span class="truncate font-bold">${layer.text || 'Teks Kosong'}</span>
+                        </div>
+                        <div class="flex items-center gap-1 shrink-0">
+                            <button class="btn-move-up p-1 hover:text-rose-400 text-slate-500 transition-all ${idx === state.layers.length - 1 ? 'opacity-30 cursor-not-allowed' : ''}" title="Ke Depan / Atas">
+                                <i class="fa-solid fa-chevron-up"></i>
+                            </button>
+                            <button class="btn-move-down p-1 hover:text-rose-400 text-slate-500 transition-all ${idx === 0 ? 'opacity-30 cursor-not-allowed' : ''}" title="Ke Belakang / Bawah">
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </button>
+                            ${state.layers.length > 1 ? `
+                                <button class="btn-del-layer p-1 hover:text-rose-400 text-slate-500 transition-all ml-1" title="Hapus Tulisan">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            ` : ''}
+                        </div>
+                    `;
+
+                    item.addEventListener('click', () => {
+                        state.activeLayerId = layer.id;
+                        renderLayerList();
+                        syncUIWithActiveLayer();
+                        renderCanvas();
+                    });
+
+                    const btnUp = item.querySelector('.btn-move-up');
+                    if (btnUp && idx < state.layers.length - 1) {
+                        btnUp.addEventListener('click', (e) => moveLayerUp(layer.id, e));
+                    }
+
+                    const btnDown = item.querySelector('.btn-move-down');
+                    if (btnDown && idx > 0) {
+                        btnDown.addEventListener('click', (e) => moveLayerDown(layer.id, e));
+                    }
+
+                    const btnDel = item.querySelector('.btn-del-layer');
+                    if (btnDel) {
+                        btnDel.addEventListener('click', (e) => deleteLayer(layer.id, e));
+                    }
+
+                    container.appendChild(item);
+                });
+            }
+
+            // Sync Form Controls with Active Layer Data
+            function syncUIWithActiveLayer() {
+                const layer = getActiveLayer();
+                if (!layer) return;
+
+                inputText.value = layer.text;
+                sliderPosX.value = layer.xOffset; valPosX.textContent = layer.xOffset + 'px';
+                sliderPosY.value = layer.yOffset; valPosY.textContent = layer.yOffset + 'px';
+                sliderFontSize.value = layer.fontSize; valFontSize.textContent = layer.fontSize + 'px';
+                sliderArc.value = layer.arc; valArc.textContent = layer.arc + '°';
+                sliderSkew.value = layer.skew; valSkew.textContent = layer.skew + '°';
+                sliderRotate.value = layer.rotate; valRotate.textContent = layer.rotate + '°';
+                sliderDepth.value = layer.depth; valDepth.textContent = layer.depth + 'px';
+                sliderAngle.value = layer.angle; valAngle.textContent = layer.angle + '°';
+                sliderSpacing.value = layer.spacing; valSpacing.textContent = layer.spacing + 'px';
+                sliderOutlineWidth.value = layer.outlineWidth; valOutlineWidth.textContent = layer.outlineWidth + 'px';
+                sliderDrips.value = layer.dripsCount; valDrips.textContent = layer.dripsCount;
+                sliderSpray.value = layer.sprayDensity; valSpray.textContent = layer.sprayDensity;
+                sliderGlow.value = layer.glowBlur; valGlow.textContent = layer.glowBlur + 'px';
+
+                colFillStart.value = layer.fillStart;
+                colFillEnd.value = layer.fillEnd;
+                colOutline.value = layer.outlineColor;
+                colExtrusion.value = layer.extrusionColor;
+                colGlow.value = layer.glowColor;
+
+                // Sync Font buttons
+                fontOpts.forEach(b => {
+                    const font = b.getAttribute('data-font');
+                    if (font === layer.fontFamily) {
+                        b.classList.add('border-rose-500');
+                        b.querySelector('.check-icon').classList.remove('opacity-0');
+                    } else {
+                        b.classList.remove('border-rose-500');
+                        b.querySelector('.check-icon').classList.add('opacity-0');
+                    }
+                });
+            }
+
+            // Tab Switching Logic
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const targetTab = btn.getAttribute('data-tab');
+                    tabBtns.forEach(b => {
+                        b.classList.remove('active', 'bg-slate-800', 'text-rose-400');
+                        b.classList.add('text-slate-400');
+                    });
+                    tabContents.forEach(c => c.classList.add('hidden'));
+
+                    btn.classList.add('active', 'bg-slate-800', 'text-rose-400');
+                    btn.classList.remove('text-slate-400');
+                    document.getElementById(targetTab).classList.remove('hidden');
+                });
+            });
+
+            document.querySelector('[data-tab="tab-text"]').classList.add('bg-slate-800', 'text-rose-400');
+
+            // Inputs & Sliders DOM Elements
+            const inputText = document.getElementById('inputText');
+            const sliderPosX = document.getElementById('sliderPosX');
+            const sliderPosY = document.getElementById('sliderPosY');
+            const sliderFontSize = document.getElementById('sliderFontSize');
+            const sliderArc = document.getElementById('sliderArc');
+            const sliderSkew = document.getElementById('sliderSkew');
+            const sliderRotate = document.getElementById('sliderRotate');
+            const sliderDepth = document.getElementById('sliderDepth');
+            const sliderAngle = document.getElementById('sliderAngle');
+            const sliderSpacing = document.getElementById('sliderSpacing');
+            const sliderOutlineWidth = document.getElementById('sliderOutlineWidth');
+            const sliderDrips = document.getElementById('sliderDrips');
+            const sliderSpray = document.getElementById('sliderSpray');
+            const sliderGlow = document.getElementById('sliderGlow');
+
+            const colFillStart = document.getElementById('colFillStart');
+            const colFillEnd = document.getElementById('colFillEnd');
+            const colOutline = document.getElementById('colOutline');
+            const colExtrusion = document.getElementById('colExtrusion');
+            const colGlow = document.getElementById('colGlow');
+
+            // Value Indicators
+            const valPosX = document.getElementById('valPosX');
+            const valPosY = document.getElementById('valPosY');
+            const valFontSize = document.getElementById('valFontSize');
+            const valArc = document.getElementById('valArc');
+            const valSkew = document.getElementById('valSkew');
+            const valRotate = document.getElementById('valRotate');
+            const valDepth = document.getElementById('valDepth');
+            const valAngle = document.getElementById('valAngle');
+            const valSpacing = document.getElementById('valSpacing');
+            const valOutlineWidth = document.getElementById('valOutlineWidth');
+            const valDrips = document.getElementById('valDrips');
+            const valSpray = document.getElementById('valSpray');
+            const valGlow = document.getElementById('valGlow');
+
+            document.getElementById('btnAddLayer').addEventListener('click', () => {
+                const nextCount = state.layers.length + 1;
+                const nextPreset = COLOR_PRESETS[(nextCount - 1) % COLOR_PRESETS.length];
+                const defaultOffset = (nextCount - 1) * 70 - 30;
+                createNewLayer(`TEKS ${nextCount}`, defaultOffset, nextPreset);
+            });
+
+            inputText.addEventListener('input', (e) => {
+                const layer = getActiveLayer();
+                if (!layer) return;
+                layer.text = e.target.value.toUpperCase() || " ";
+                generateSeedsForLayer(layer);
+                renderLayerList();
+                renderCanvas();
+            });
+
+            sliderPosX.addEventListener('input', (e) => {
+                const layer = getActiveLayer();
+                if (layer) {
+                    layer.xOffset = parseInt(e.target.value);
+                    valPosX.textContent = layer.xOffset + 'px';
+                    renderCanvas();
+                }
+            });
+
+            sliderPosY.addEventListener('input', (e) => {
+                const layer = getActiveLayer();
+                if (layer) {
+                    layer.yOffset = parseInt(e.target.value);
+                    valPosY.textContent = layer.yOffset + 'px';
+                    renderCanvas();
+                }
+            });
+
+            sliderFontSize.addEventListener('input', (e) => {
+                const layer = getActiveLayer();
+                if (layer) {
+                    layer.fontSize = parseInt(e.target.value);
+                    valFontSize.textContent = layer.fontSize + 'px';
+                    renderCanvas();
+                }
+            });
+
+            sliderArc.addEventListener('input', (e) => {
+                const layer = getActiveLayer();
+                if (layer) {
+                    layer.arc = parseInt(e.target.value);
+                    valArc.textContent = layer.arc + '°';
+                    renderCanvas();
+                }
+            });
+
+            sliderSkew.addEventListener('input', (e) => {
+                const layer = getActiveLayer();
+                if (layer) {
+                    layer.skew = parseInt(e.target.value);
+                    valSkew.textContent = layer.skew + '°';
+                    renderCanvas();
+                }
+            });
+
+            sliderRotate.addEventListener('input', (e) => {
+                const layer = getActiveLayer();
+                if (layer) {
+                    layer.rotate = parseInt(e.target.value);
+                    valRotate.textContent = layer.rotate + '°';
+                    renderCanvas();
+                }
+            });
+
+            sliderDepth.addEventListener('input', (e) => {
+                const layer = getActiveLayer();
+                if (layer) {
+                    layer.depth = parseInt(e.target.value);
+                    valDepth.textContent = layer.depth + 'px';
+                    renderCanvas();
+                }
+            });
+
+            sliderAngle.addEventListener('input', (e) => {
+                const layer = getActiveLayer();
+                if (layer) {
+                    layer.angle = parseInt(e.target.value);
+                    valAngle.textContent = layer.angle + '°';
+                    renderCanvas();
+                }
+            });
+
+            sliderSpacing.addEventListener('input', (e) => {
+                const layer = getActiveLayer();
+                if (layer) {
+                    layer.spacing = parseInt(e.target.value);
+                    valSpacing.textContent = layer.spacing + 'px';
+                    renderCanvas();
+                }
+            });
+
+            sliderOutlineWidth.addEventListener('input', (e) => {
+                const layer = getActiveLayer();
+                if (layer) {
+                    layer.outlineWidth = parseInt(e.target.value);
+                    valOutlineWidth.textContent = layer.outlineWidth + 'px';
+                    renderCanvas();
+                }
+            });
+
+            sliderDrips.addEventListener('input', (e) => {
+                const layer = getActiveLayer();
+                if (layer) {
+                    layer.dripsCount = parseInt(e.target.value);
+                    valDrips.textContent = layer.dripsCount;
+                    generateSeedsForLayer(layer);
+                    renderCanvas();
+                }
+            });
+
+            sliderSpray.addEventListener('input', (e) => {
+                const layer = getActiveLayer();
+                if (layer) {
+                    layer.sprayDensity = parseInt(e.target.value);
+                    valSpray.textContent = layer.sprayDensity;
+                    generateSeedsForLayer(layer);
+                    renderCanvas();
+                }
+            });
+
+            sliderGlow.addEventListener('input', (e) => {
+                const layer = getActiveLayer();
+                if (layer) {
+                    layer.glowBlur = parseInt(e.target.value);
+                    valGlow.textContent = layer.glowBlur + 'px';
+                    renderCanvas();
+                }
+            });
+
+            // Color Pickers Listeners
+            colFillStart.addEventListener('input', (e) => { const l = getActiveLayer(); if (l) { l.fillStart = e.target.value; renderCanvas(); } });
+            colFillEnd.addEventListener('input', (e) => { const l = getActiveLayer(); if (l) { l.fillEnd = e.target.value; renderCanvas(); } });
+            colOutline.addEventListener('input', (e) => { const l = getActiveLayer(); if (l) { l.outlineColor = e.target.value; renderCanvas(); } });
+            colExtrusion.addEventListener('input', (e) => { const l = getActiveLayer(); if (l) { l.extrusionColor = e.target.value; renderCanvas(); } });
+            colGlow.addEventListener('input', (e) => { const l = getActiveLayer(); if (l) { l.glowColor = e.target.value; renderCanvas(); } });
+
+            // Font Selector
+            const fontOpts = document.querySelectorAll('.font-opt');
+            fontOpts.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const layer = getActiveLayer();
+                    if (!layer) return;
+
+                    fontOpts.forEach(b => {
+                        b.classList.remove('border-rose-500');
+                        b.querySelector('.check-icon').classList.add('opacity-0');
+                    });
+                    btn.classList.add('border-rose-500');
+                    btn.querySelector('.check-icon').classList.remove('opacity-0');
+
+                    layer.fontFamily = btn.getAttribute('data-font');
+                    document.fonts.ready.then(() => renderCanvas());
+                });
+            });
+
+            // Background Mode Selector
+            const bgOpts = document.querySelectorAll('.bg-opt');
+            bgOpts.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    bgOpts.forEach(b => b.classList.remove('border-rose-500'));
+                    btnUploadBg.classList.remove('border-rose-500');
+                    btn.classList.add('border-rose-500');
+                    state.bgMode = btn.getAttribute('data-bg');
+                    renderCanvas();
+                });
+            });
+
+            const bgImageInput = document.getElementById('bgImageInput');
+            const btnUploadBg = document.getElementById('btnUploadBg');
+
+            btnUploadBg.addEventListener('click', () => {
+                bgImageInput.click();
+            });
+
+            const cropModal = document.getElementById('cropModal');
+            const cropCanvas = document.getElementById('cropCanvas');
+            const cropCtx = cropCanvas.getContext('2d');
+            let pendingBgFileName = "";
+
+            const cropState = {
+                rawImg: null,
+                rotation: 0, // 0, 90, 180, 270
+                aspectRatio: 1200 / 700, // default match canvas aspect ratio
+                cropX: 0,
+                cropY: 0,
+                cropW: 0,
+                cropH: 0,
+                isDragging: false,
+                dragType: null, // 'move', 'tl', 'tr', 'bl', 'br'
+                startX: 0,
+                startY: 0,
+                initCropX: 0,
+                initCropY: 0,
+                initCropW: 0,
+                initCropH: 0,
+                dispScale: 1
+            };
+
+            bgImageInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    pendingBgFileName = file.name;
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            openCropModal(img);
+                        };
+                        img.src = event.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+                // Reset input value so same file can be chosen again if needed
+                bgImageInput.value = '';
+            });
+
+            function openCropModal(img) {
+                cropState.rawImg = img;
+                cropState.rotation = 0;
+                cropState.aspectRatio = 1200 / 700;
+
+                // Reset ratio buttons UI
+                document.querySelectorAll('.btn-crop-ratio').forEach(btn => {
+                    if (btn.getAttribute('data-ratio') === '12/7') {
+                        btn.className = 'btn-crop-ratio px-2.5 py-1 rounded-md border border-rose-500 bg-rose-500/10 text-rose-300 font-medium';
+                    } else {
+                        btn.className = 'btn-crop-ratio px-2.5 py-1 rounded-md border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700';
+                    }
+                });
+
+                initCropBox();
+                
+                cropModal.classList.remove('opacity-0', 'pointer-events-none');
+                cropModal.classList.add('opacity-100');
+            }
+
+            function closeCropModal() {
+                cropModal.classList.add('opacity-0', 'pointer-events-none');
+                cropModal.classList.remove('opacity-100');
+            }
+
+            document.getElementById('btnCloseCrop').addEventListener('click', closeCropModal);
+            document.getElementById('btnCancelCrop').addEventListener('click', closeCropModal);
+
+            function getRotatedDimensions() {
+                if (cropState.rotation % 180 === 0) {
+                    return { width: cropState.rawImg.width, height: cropState.rawImg.height };
+                } else {
+                    return { width: cropState.rawImg.height, height: cropState.rawImg.width };
+                }
+            }
+
+            function initCropBox() {
+                const dims = getRotatedDimensions();
+                const maxDispW = Math.min(560, window.innerWidth - 60);
+                const maxDispH = 350;
+
+                const scaleX = maxDispW / dims.width;
+                const scaleY = maxDispH / dims.height;
+                cropState.dispScale = Math.min(scaleX, scaleY, 1);
+
+                cropCanvas.width = dims.width * cropState.dispScale;
+                cropCanvas.height = dims.height * cropState.dispScale;
+
+                const cw = cropCanvas.width;
+                const ch = cropCanvas.height;
+
+                if (cropState.aspectRatio === 'free') {
+                    cropState.cropW = cw * 0.8;
+                    cropState.cropH = ch * 0.8;
+                } else {
+                    const targetRatio = cropState.aspectRatio;
+                    if (cw / ch > targetRatio) {
+                        cropState.cropH = ch * 0.85;
+                        cropState.cropW = cropState.cropH * targetRatio;
+                    } else {
+                        cropState.cropW = cw * 0.85;
+                        cropState.cropH = cropState.cropW / targetRatio;
+                    }
+                }
+
+                cropState.cropX = (cw - cropState.cropW) / 2;
+                cropState.cropY = (ch - cropState.cropH) / 2;
+
+                renderCropCanvas();
+            }
+
+            function renderCropCanvas() {
+                if (!cropState.rawImg) return;
+
+                const cw = cropCanvas.width;
+                const ch = cropCanvas.height;
+
+                cropCtx.clearRect(0, 0, cw, ch);
+
+                // 1. Draw Rotated Source Image
+                cropCtx.save();
+                cropCtx.translate(cw / 2, ch / 2);
+                cropCtx.rotate((cropState.rotation * Math.PI) / 180);
+
+                const origW = cropState.rawImg.width * cropState.dispScale;
+                const origH = cropState.rawImg.height * cropState.dispScale;
+
+                cropCtx.drawImage(cropState.rawImg, -origW / 2, -origH / 2, origW, origH);
+                cropCtx.restore();
+
+                // 2. Dark Overlay outside crop area
+                cropCtx.fillStyle = 'rgba(2, 6, 23, 0.65)';
+                // Top
+                cropCtx.fillRect(0, 0, cw, cropState.cropY);
+                // Bottom
+                cropCtx.fillRect(0, cropState.cropY + cropState.cropH, cw, ch - (cropState.cropY + cropState.cropH));
+                // Left
+                cropCtx.fillRect(0, cropState.cropY, cropState.cropX, cropState.cropH);
+                // Right
+                cropCtx.fillRect(cropState.cropX + cropState.cropW, cropState.cropY, cw - (cropState.cropX + cropState.cropW), cropState.cropH);
+
+                // 3. Crop Rectangle Border
+                cropCtx.strokeStyle = '#f43f5e';
+                cropCtx.lineWidth = 2;
+                cropCtx.strokeRect(cropState.cropX, cropState.cropY, cropState.cropW, cropState.cropH);
+
+                // Grid Lines (Rule of thirds)
+                cropCtx.strokeStyle = 'rgba(244, 63, 94, 0.35)';
+                cropCtx.lineWidth = 1;
+                cropCtx.beginPath();
+                // Vertical lines
+                cropCtx.moveTo(cropState.cropX + cropState.cropW / 3, cropState.cropY);
+                cropCtx.lineTo(cropState.cropX + cropState.cropW / 3, cropState.cropY + cropState.cropH);
+                cropCtx.moveTo(cropState.cropX + (cropState.cropW * 2) / 3, cropState.cropY);
+                cropCtx.lineTo(cropState.cropX + (cropState.cropW * 2) / 3, cropState.cropY + cropState.cropH);
+                // Horizontal lines
+                cropCtx.moveTo(cropState.cropX, cropState.cropY + cropState.cropH / 3);
+                cropCtx.lineTo(cropState.cropX + cropState.cropW, cropState.cropY + cropState.cropH / 3);
+                cropCtx.moveTo(cropState.cropX, cropState.cropY + (cropState.cropH * 2) / 3);
+                cropCtx.lineTo(cropState.cropX + cropState.cropW, cropState.cropY + (cropState.cropH * 2) / 3);
+                cropCtx.stroke();
+
+                // 4. Corner Handles
+                const handleSize = 10;
+                cropCtx.fillStyle = '#ffffff';
+                cropCtx.strokeStyle = '#f43f5e';
+                cropCtx.lineWidth = 2;
+
+                const corners = [
+                    { x: cropState.cropX, y: cropState.cropY }, // Top-Left
+                    { x: cropState.cropX + cropState.cropW, y: cropState.cropY }, // Top-Right
+                    { x: cropState.cropX, y: cropState.cropY + cropState.cropH }, // Bottom-Left
+                    { x: cropState.cropX + cropState.cropW, y: cropState.cropY + cropState.cropH } // Bottom-Right
+                ];
+
+                corners.forEach(c => {
+                    cropCtx.beginPath();
+                    cropCtx.arc(c.x, c.y, handleSize / 2, 0, Math.PI * 2);
+                    cropCtx.fill();
+                    cropCtx.stroke();
+                });
+            }
+
+            // Aspect Ratio Toggles
+            document.querySelectorAll('.btn-crop-ratio').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.btn-crop-ratio').forEach(b => {
+                        b.className = 'btn-crop-ratio px-2.5 py-1 rounded-md border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700';
+                    });
+                    btn.className = 'btn-crop-ratio px-2.5 py-1 rounded-md border border-rose-500 bg-rose-500/10 text-rose-300 font-medium';
+
+                    const val = btn.getAttribute('data-ratio');
+                    if (val === 'free') {
+                        cropState.aspectRatio = 'free';
+                    } else if (val === '12/7') {
+                        cropState.aspectRatio = 1200 / 700;
+                    } else if (val === '1') {
+                        cropState.aspectRatio = 1;
+                    } else if (val === '16/9') {
+                        cropState.aspectRatio = 16 / 9;
+                    }
+
+                    initCropBox();
+                });
+            });
+
+            // Rotate Button
+            document.getElementById('btnRotateCrop').addEventListener('click', () => {
+                cropState.rotation = (cropState.rotation + 90) % 360;
+                initCropBox();
+            });
+
+            // Dragging & Resizing Crop Window Logic
+            function getCropPointerPos(e) {
+                const rect = cropCanvas.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                return {
+                    x: clientX - rect.left,
+                    y: clientY - rect.top
+                };
+            }
+
+            function handleCropStart(e) {
+                const pos = getCropPointerPos(e);
+                const handleRadius = 16;
+
+                const corners = {
+                    tl: { x: cropState.cropX, y: cropState.cropY },
+                    tr: { x: cropState.cropX + cropState.cropW, y: cropState.cropY },
+                    bl: { x: cropState.cropX, y: cropState.cropY + cropState.cropH },
+                    br: { x: cropState.cropX + cropState.cropW, y: cropState.cropY + cropState.cropH }
+                };
+
+                cropState.dragType = null;
+
+                for (let key in corners) {
+                    const c = corners[key];
+                    const dist = Math.hypot(pos.x - c.x, pos.y - c.y);
+                    if (dist <= handleRadius) {
+                        cropState.dragType = key;
+                        break;
+                    }
+                }
+
+                if (!cropState.dragType) {
+                    if (pos.x >= cropState.cropX && pos.x <= cropState.cropX + cropState.cropW &&
+                        pos.y >= cropState.cropY && pos.y <= cropState.cropY + cropState.cropH) {
+                        cropState.dragType = 'move';
+                    }
+                }
+
+                if (cropState.dragType) {
+                    cropState.isDragging = true;
+                    cropState.startX = pos.x;
+                    cropState.startY = pos.y;
+                    cropState.initCropX = cropState.cropX;
+                    cropState.initCropY = cropState.cropY;
+                    cropState.initCropW = cropState.cropW;
+                    cropState.initCropH = cropState.cropH;
+                }
+            }
+
+            function handleCropMove(e) {
+                if (!cropState.isDragging) return;
+                const pos = getCropPointerPos(e);
+                const dx = pos.x - cropState.startX;
+                const dy = pos.y - cropState.startY;
+
+                const cw = cropCanvas.width;
+                const ch = cropCanvas.height;
+                const minSize = 30;
+
+                if (cropState.dragType === 'move') {
+                    let newX = cropState.initCropX + dx;
+                    let newY = cropState.initCropY + dy;
+
+                    newX = Math.max(0, Math.min(cw - cropState.cropW, newX));
+                    newY = Math.max(0, Math.min(ch - cropState.cropH, newY));
+
+                    cropState.cropX = newX;
+                    cropState.cropY = newY;
+                } else if (cropState.dragType === 'br') {
+                    let newW = Math.max(minSize, Math.min(cw - cropState.initCropX, cropState.initCropW + dx));
+                    let newH = cropState.aspectRatio === 'free' ? 
+                        Math.max(minSize, Math.min(ch - cropState.initCropY, cropState.initCropH + dy)) :
+                        newW / cropState.aspectRatio;
+
+                    if (cropState.initCropY + newH <= ch) {
+                        cropState.cropW = newW;
+                        cropState.cropH = newH;
+                    }
+                } else if (cropState.dragType === 'bl') {
+                    let newW = Math.max(minSize, cropState.initCropW - dx);
+                    let newX = cropState.initCropX + (cropState.initCropW - newW);
+
+                    if (newX >= 0) {
+                        let newH = cropState.aspectRatio === 'free' ? 
+                            Math.max(minSize, Math.min(ch - cropState.initCropY, cropState.initCropH + dy)) :
+                            newW / cropState.aspectRatio;
+
+                        if (cropState.initCropY + newH <= ch) {
+                            cropState.cropX = newX;
+                            cropState.cropW = newW;
+                            cropState.cropH = newH;
+                        }
+                    }
+                } else if (cropState.dragType === 'tr') {
+                    let newW = Math.max(minSize, Math.min(cw - cropState.initCropX, cropState.initCropW + dx));
+                    let newH = cropState.aspectRatio === 'free' ? 
+                        Math.max(minSize, cropState.initCropH - dy) :
+                        newW / cropState.aspectRatio;
+
+                    let newY = cropState.initCropY + cropState.initCropH - newH;
+
+                    if (newY >= 0) {
+                        cropState.cropW = newW;
+                        cropState.cropH = newH;
+                        cropState.cropY = newY;
+                    }
+                } else if (cropState.dragType === 'tl') {
+                    let newW = Math.max(minSize, cropState.initCropW - dx);
+                    let newX = cropState.initCropX + (cropState.initCropW - newW);
+
+                    if (newX >= 0) {
+                        let newH = cropState.aspectRatio === 'free' ? 
+                            Math.max(minSize, cropState.initCropH - dy) :
+                            newW / cropState.aspectRatio;
+
+                        let newY = cropState.initCropY + cropState.initCropH - newH;
+
+                        if (newY >= 0) {
+                            cropState.cropX = newX;
+                            cropState.cropW = newW;
+                            cropState.cropH = newH;
+                            cropState.cropY = newY;
+                        }
+                    }
+                }
+
+                renderCropCanvas();
+            }
+
+            function handleCropEnd() {
+                cropState.isDragging = false;
+            }
+
+            cropCanvas.addEventListener('mousedown', handleCropStart);
+            window.addEventListener('mousemove', handleCropMove);
+            window.addEventListener('mouseup', handleCropEnd);
+
+            cropCanvas.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) handleCropStart(e);
+            }, { passive: true });
+
+            window.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 1 && cropState.isDragging) handleCropMove(e);
+            }, { passive: true });
+
+            window.addEventListener('touchend', handleCropEnd);
+
+            // Apply Cropping Result to Background
+            document.getElementById('btnApplyCrop').addEventListener('click', () => {
+                if (!cropState.rawImg) return;
+
+                // Offscreen High Quality Render Canvas
+                const offCanvas = document.createElement('canvas');
+                const scale = 1 / cropState.dispScale;
+
+                const srcCropX = cropState.cropX * scale;
+                const srcCropY = cropState.cropY * scale;
+                const srcCropW = cropState.cropW * scale;
+                const srcCropH = cropState.cropH * scale;
+
+                offCanvas.width = srcCropW;
+                offCanvas.height = srcCropH;
+                const offCtx = offCanvas.getContext('2d');
+
+                const dims = getRotatedDimensions();
+
+                offCtx.save();
+                offCtx.translate(-srcCropX, -srcCropY);
+                offCtx.translate(dims.width / 2, dims.height / 2);
+                offCtx.rotate((cropState.rotation * Math.PI) / 180);
+
+                offCtx.drawImage(
+                    cropState.rawImg, 
+                    -cropState.rawImg.width / 2, 
+                    -cropState.rawImg.height / 2, 
+                    cropState.rawImg.width, 
+                    cropState.rawImg.height
+                );
+                offCtx.restore();
+
+                const croppedImg = new Image();
+                croppedImg.onload = () => {
+                    state.customBgImage = croppedImg;
+                    state.bgMode = 'custom-image';
+
+                    bgOpts.forEach(b => b.classList.remove('border-rose-500'));
+                    btnUploadBg.classList.add('border-rose-500');
+                    document.getElementById('bgUploadLabel').textContent = 'Foto: ' + (pendingBgFileName || 'Terpotong');
+
+                    closeCropModal();
+                    renderCanvas();
+                    showToast("Foto berhasil dipotong & diterapkan!");
+                };
+                croppedImg.src = offCanvas.toDataURL('image/png');
+            });
+
+            function applyColorPreset(preset) {
+                const layer = getActiveLayer();
+                if (!layer) return;
+
+                layer.fillStart = preset.fillStart;
+                layer.fillEnd = preset.fillEnd;
+                layer.outlineColor = preset.outline;
+                layer.extrusionColor = preset.extrusion;
+                layer.glowColor = preset.glow;
+
+                colFillStart.value = preset.fillStart;
+                colFillEnd.value = preset.fillEnd;
+                colOutline.value = preset.outline;
+                colExtrusion.value = preset.extrusion;
+                colGlow.value = preset.glow;
+
+                renderCanvas();
+            }
+
+            const canvasComp = document.getElementById('canvasContainer');
+
+            function handleDragStart(x, y) {
+                const layer = getActiveLayer();
+                if (!layer) return;
+                state.isDragging = true;
+                state.dragStartX = x;
+                state.dragStartY = y;
+                state.initialLayerX = layer.xOffset;
+                state.initialLayerY = layer.yOffset;
+            }
+
+            function handleDragMove(x, y) {
+                if (!state.isDragging) return;
+                const layer = getActiveLayer();
+                if (!layer) return;
+
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = 1200 / rect.width;
+                const scaleY = 700 / rect.height;
+
+                const deltaX = (x - state.dragStartX) * scaleX;
+                const deltaY = (y - state.dragStartY) * scaleY;
+
+                layer.xOffset = Math.round(state.initialLayerX + deltaX);
+                layer.yOffset = Math.round(state.initialLayerY + deltaY);
+
+                sliderPosX.value = layer.xOffset; valPosX.textContent = layer.xOffset + 'px';
+                sliderPosY.value = layer.yOffset; valPosY.textContent = layer.yOffset + 'px';
+
+                renderCanvas();
+            }
+
+            function handleDragEnd() {
+                state.isDragging = false;
+            }
+
+            canvasComp.addEventListener('mousedown', (e) => handleDragStart(e.clientX, e.clientY));
+            window.addEventListener('mousemove', (e) => handleDragMove(e.clientX, e.clientY));
+            window.addEventListener('mouseup', handleDragEnd);
+
+            canvasComp.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) handleDragStart(e.touches[0].clientX, e.touches[0].clientY);
+            }, { passive: true });
+
+            window.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 1) handleDragMove(e.touches[0].clientX, e.touches[0].clientY);
+            }, { passive: true });
+
+            window.addEventListener('touchend', handleDragEnd);
+
+            // Reset Button
+            document.getElementById('btnReset').addEventListener('click', () => {
+                state.layers = [];
+                createNewLayer("STREET ART", 0, COLOR_PRESETS[0]);
+                showToast("Pengaturan grafiti telah direset!");
+            });
+
+            // Randomize Style Button
+            document.getElementById('btnRandomize').addEventListener('click', () => {
+                state.layers.forEach((layer) => {
+                    const randomPreset = COLOR_PRESETS[Math.floor(Math.random() * COLOR_PRESETS.length)];
+                    layer.fillStart = randomPreset.fillStart;
+                    layer.fillEnd = randomPreset.fillEnd;
+                    layer.outlineColor = randomPreset.outline;
+                    layer.extrusionColor = randomPreset.extrusion;
+                    layer.glowColor = randomPreset.glow;
+
+                    layer.arc = Math.floor(Math.random() * 40) - 20;
+                    layer.skew = Math.floor(Math.random() * 30) - 15;
+                    layer.rotate = Math.floor(Math.random() * 16) - 8;
+                    layer.depth = Math.floor(Math.random() * 30) + 10;
+                });
+
+                syncUIWithActiveLayer();
+                renderCanvas();
+                showToast("Gaya acak diterapkan ke semua teks!");
+            });
+
+            function resizeCanvas() {
+                const dpr = window.devicePixelRatio || 1;
+                canvas.width = 1200 * dpr;
+                canvas.height = 700 * dpr;
+                canvas.style.width = '100%';
+                canvas.style.height = '100%';
+
+                ctx.scale(dpr, dpr);
+                renderCanvas();
+            }
+
+            function renderCanvas() {
+                const width = 1200;
+                const height = 700;
+
+                ctx.clearRect(0, 0, width, height);
+
+                // 1. Draw Background
+                drawBackground(ctx, width, height);
+
+                // 2. Loop & Draw each text layer
+                state.layers.forEach((layer) => {
+                    renderSingleLayer(ctx, layer, width, height);
+                });
+            }
+
+            function renderSingleLayer(ctx, layer, width, height) {
+                ctx.font = `bold ${layer.fontSize}px ${layer.fontFamily}`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                const chars = layer.text.split('');
+                if (chars.length === 0) return;
+
+                ctx.save();
+                ctx.translate(width / 2 + layer.xOffset, height / 2 + layer.yOffset);
+                ctx.rotate((layer.rotate * Math.PI) / 180);
+
+                let charWidths = chars.map(c => ctx.measureText(c).width + layer.spacing);
+                let totalWidth = charWidths.reduce((a, b) => a + b, 0);
+
+                const radAngle = (layer.angle * Math.PI) / 180;
+                const dirX = Math.cos(radAngle);
+                const dirY = Math.sin(radAngle);
+
+                function drawLetterPath(char, x, y, arcAngle) {
+                    ctx.save();
+                    ctx.translate(x, y);
+                    ctx.rotate(arcAngle);
+                    ctx.transform(1, 0, Math.tan((layer.skew * Math.PI) / 180), 1, 0, 0);
+                    ctx.fillText(char, 0, 0);
+                    ctx.strokeText(char, 0, 0);
+                    ctx.restore();
+                }
+
+                // Outer Glow / Shadow
+                if (layer.glowBlur > 0) {
+                    ctx.save();
+                    ctx.shadowColor = layer.glowColor;
+                    ctx.shadowBlur = layer.glowBlur;
+                    ctx.fillStyle = layer.glowColor;
+                    ctx.strokeStyle = layer.glowColor;
+                    ctx.lineWidth = layer.outlineWidth + 10;
+
+                    let curX = -totalWidth / 2;
+                    chars.forEach((char, i) => {
+                        const charW = charWidths[i];
+                        const charCenterX = curX + charW / 2;
+                        const arcRatio = charCenterX / (totalWidth || 1);
+                        const arcRad = ((layer.arc * arcRatio) * Math.PI) / 180;
+                        const arcY = Math.sin(arcRad) * 80;
+
+                        drawLetterPath(char, charCenterX, arcY, arcRad);
+                        curX += charW;
+                    });
+                    ctx.restore();
+                }
+
+                // 3D Extrusion Stack
+                if (layer.depth > 0) {
+                    ctx.save();
+                    ctx.fillStyle = layer.extrusionColor;
+                    ctx.strokeStyle = layer.extrusionColor;
+                    ctx.lineWidth = layer.outlineWidth;
+                    ctx.lineJoin = 'round';
+
+                    for (let d = layer.depth; d > 0; d--) {
+                        const offX = dirX * d;
+                        const offY = dirY * d;
+
+                        let curX = -totalWidth / 2;
+                        chars.forEach((char, i) => {
+                            const charW = charWidths[i];
+                            const charCenterX = curX + charW / 2;
+                            const arcRatio = charCenterX / (totalWidth || 1);
+                            const arcRad = ((layer.arc * arcRatio) * Math.PI) / 180;
+                            const arcY = Math.sin(arcRad) * 80;
+
+                            drawLetterPath(char, charCenterX + offX, arcY + offY, arcRad);
+                            curX += charW;
+                        });
+                    }
+                    ctx.restore();
+                }
+
+                // Thick Outline
+                if (layer.outlineWidth > 0) {
+                    ctx.save();
+                    ctx.strokeStyle = layer.outlineColor;
+                    ctx.lineWidth = layer.outlineWidth * 2;
+                    ctx.lineJoin = 'round';
+                    ctx.miterLimit = 2;
+
+                    let curX = -totalWidth / 2;
+                    chars.forEach((char, i) => {
+                        const charW = charWidths[i];
+                        const charCenterX = curX + charW / 2;
+                        const arcRatio = charCenterX / (totalWidth || 1);
+                        const arcRad = ((layer.arc * arcRatio) * Math.PI) / 180;
+                        const arcY = Math.sin(arcRad) * 80;
+
+                        drawLetterPath(char, charCenterX, arcY, arcRad);
+                        curX += charW;
+                    });
+                    ctx.restore();
+                }
+
+                // Fill Gradient
+                ctx.save();
+                const textGrad = ctx.createLinearGradient(0, -layer.fontSize / 2, 0, layer.fontSize / 2);
+                textGrad.addColorStop(0, layer.fillStart);
+                textGrad.addColorStop(1, layer.fillEnd);
+
+                ctx.fillStyle = textGrad;
+                ctx.strokeStyle = 'transparent';
+
+                let curX = -totalWidth / 2;
+                let charCoords = [];
+
+                chars.forEach((char, i) => {
+                    const charW = charWidths[i];
+                    const charCenterX = curX + charW / 2;
+                    const arcRatio = charCenterX / (totalWidth || 1);
+                    const arcRad = ((layer.arc * arcRatio) * Math.PI) / 180;
+                    const arcY = Math.sin(arcRad) * 80;
+
+                    charCoords.push({ x: charCenterX, y: arcY, width: charW, rad: arcRad });
+
+                    drawLetterPath(char, charCenterX, arcY, arcRad);
+                    curX += charW;
+                });
+                ctx.restore();
+
+                // Paint Drips
+                if (layer.dripsCount > 0 && charCoords.length > 0 && layer.dripSeeds.length > 0) {
+                    ctx.save();
+                    ctx.fillStyle = layer.fillEnd;
+                    ctx.strokeStyle = layer.outlineColor;
+                    ctx.lineWidth = 2;
+
+                    for (let i = 0; i < layer.dripsCount; i++) {
+                        const seed = layer.dripSeeds[i % layer.dripSeeds.length];
+                        const charIndex = Math.floor(seed.xRel * charCoords.length);
+                        const coord = charCoords[charIndex] || charCoords[0];
+
+                        const dripX = coord.x + (seed.xRel - 0.5) * coord.width;
+                        const dripY = coord.y + layer.fontSize / 3;
+
+                        ctx.beginPath();
+                        ctx.roundRect(dripX - seed.width / 2, dripY, seed.width, seed.length, [0, 0, seed.width, seed.width]);
+                        ctx.fill();
+                        ctx.stroke();
+                    }
+                    ctx.restore();
+                }
+
+                // Spray Particles
+                if (layer.sprayDensity > 0 && layer.spraySeeds.length > 0) {
+                    ctx.save();
+                    ctx.fillStyle = layer.fillStart;
+
+                    const activeSprays = Math.floor((layer.sprayDensity / 100) * layer.spraySeeds.length);
+                    for (let i = 0; i < activeSprays; i++) {
+                        const seed = layer.spraySeeds[i];
+                        const pX = seed.xRel * totalWidth;
+                        const pY = seed.yRel * (layer.fontSize * 1.5);
+
+                        ctx.globalAlpha = seed.alpha;
+                        ctx.beginPath();
+                        ctx.arc(pX, pY, seed.radius, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    ctx.restore();
+                }
+
+                ctx.restore();
+            }
+
+            function drawBackground(ctx, w, h) {
+                if (state.bgMode === 'transparent') return;
+
+                if (state.bgMode === 'custom-image' && state.customBgImage) {
+                    const img = state.customBgImage;
+                    const scale = Math.max(w / img.width, h / img.height);
+                    const x = (w / 2) - (img.width / 2) * scale;
+                    const y = (h / 2) - (img.height / 2) * scale;
+                    ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+                    return;
+                }
+
+                if (state.bgMode === 'dark-studio') {
+                    const bgGrad = ctx.createRadialGradient(w / 2, h / 2, 50, w / 2, h / 2, w / 1.2);
+                    bgGrad.addColorStop(0, '#1e293b');
+                    bgGrad.addColorStop(1, '#020617');
+                    ctx.fillStyle = bgGrad;
+                    ctx.fillRect(0, 0, w, h);
+                    return;
+                }
+
+                if (state.bgMode === 'brick-wall') {
+                    ctx.fillStyle = '#2a1215';
+                    ctx.fillRect(0, 0, w, h);
+
+                    ctx.strokeStyle = '#17090b';
+                    ctx.lineWidth = 4;
+                    const bWidth = 60;
+                    const bHeight = 25;
+
+                    for (let y = 0; y < h; y += bHeight) {
+                        const offset = (Math.floor(y / bHeight) % 2) * (bWidth / 2);
+                        ctx.beginPath();
+                        ctx.moveTo(0, y);
+                        ctx.lineTo(w, y);
+                        ctx.stroke();
+
+                        for (let x = offset; x < w; x += bWidth) {
+                            ctx.beginPath();
+                            ctx.moveTo(x, y);
+                            ctx.lineTo(x, y + bHeight);
+                            ctx.stroke();
+                        }
+                    }
+
+                    const vig = ctx.createRadialGradient(w / 2, h / 2, 100, w / 2, h / 2, w / 1.1);
+                    vig.addColorStop(0, 'rgba(0,0,0,0.1)');
+                    vig.addColorStop(1, 'rgba(0,0,0,0.8)');
+                    ctx.fillStyle = vig;
+                    ctx.fillRect(0, 0, w, h);
+                    return;
+                }
+
+                if (state.bgMode === 'concrete') {
+                    ctx.fillStyle = '#334155';
+                    ctx.fillRect(0, 0, w, h);
+
+                    ctx.fillStyle = '#1e293b';
+                    for (let i = 0; i < 2000; i++) {
+                        const nx = Math.random() * w;
+                        const ny = Math.random() * h;
+                        ctx.fillRect(nx, ny, 2, 2);
+                    }
+
+                    const vig = ctx.createRadialGradient(w / 2, h / 2, 100, w / 2, h / 2, w / 1.1);
+                    vig.addColorStop(0, 'transparent');
+                    vig.addColorStop(1, 'rgba(15, 23, 42, 0.7)');
+                    ctx.fillStyle = vig;
+                    ctx.fillRect(0, 0, w, h);
+                    return;
+                }
+            }
+
+            document.getElementById('btnDownload').addEventListener('click', () => {
+                const dataURL = canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.download = `graffiti-multi-text.png`;
+                link.href = dataURL;
+                link.click();
+
+                showToast("Gambar Grafiti Berhasil Diunduh!");
+            });
+
+            function showToast(msg) {
+                const toast = document.getElementById('toast');
+                const toastMsg = document.getElementById('toastMsg');
+                toastMsg.textContent = msg;
+
+                toast.classList.remove('translate-y-20', 'opacity-0');
+                toast.classList.add('translate-y-0', 'opacity-100');
+
+                setTimeout(() => {
+                    toast.classList.add('translate-y-20', 'opacity-0');
+                    toast.classList.remove('translate-y-0', 'opacity-100');
+                }, 3000);
+            }
+
+            // Init Default Layers
+            createNewLayer("URBAN", -60, COLOR_PRESETS[0]);
+            createNewLayer("STREET ART", 60, COLOR_PRESETS[1]);
+
+            window.addEventListener('resize', resizeCanvas);
+            document.fonts.ready.then(() => {
+                resizeCanvas();
+            });
+        });
+    </script>
+</body>
+</html>
